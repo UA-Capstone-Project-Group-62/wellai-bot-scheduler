@@ -3,13 +3,14 @@ import {
 	QueryRequest,
 	QueryResponse,
 	TimeRange,
-} from '../../../proto/gen/ts/proto/scheduling/scheduling';
+} from '~proto/proto/scheduling/scheduling';
+import { logger } from '../../lib/logger';
 
 export const query: handleUnaryCall<QueryRequest, QueryResponse> = (
 	call,
 	callback,
 ) => {
-	console.log('Query called for clinic:', call.request.clinicId);
+	logger.info({ clinicId: call.request.clinicId }, 'Query called for clinic');
 	const now = new Date();
 	const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
 	const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);

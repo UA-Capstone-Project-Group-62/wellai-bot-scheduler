@@ -1,7 +1,7 @@
 import {
 	SchedulingServiceService,
 	type SchedulingServiceServer,
-} from '../../../proto/gen/ts/proto/scheduling/scheduling';
+} from '~proto/proto/scheduling/scheduling';
 import { cancel } from './cancel';
 import { listClinics } from './list-clinics';
 import { query } from './query';

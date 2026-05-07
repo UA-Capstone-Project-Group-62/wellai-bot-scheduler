@@ -4,6 +4,9 @@
     // File Layout
     "rootDir": ".",
     "outDir": "./dist",
+    "paths": {
+      "~proto/*": ["./proto/gen/ts/*"]
+    },
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module

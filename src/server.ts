@@ -1,6 +1,7 @@
 import { Server, ServerCredentials } from '@grpc/grpc-js';
 import { BIND_ADDRESS } from './lib/env';
 import { addReflectionToServer } from './lib/proto';
+import { logger } from './lib/logger';
 import { schedulingService, schedulingImpl } from './services/scheduling';
 
 const server = new Server();
@@ -10,20 +11,20 @@ addReflectionToServer(server);
 
 server.bindAsync(BIND_ADDRESS, ServerCredentials.createInsecure(), (err) => {
 	if (err) {
-		console.error('Failed to bind server:', err);
+		logger.error(err, 'Failed to bind server');
 		process.exit(1);
 	}
-	console.log(`Scheduling gRPC server running at ${BIND_ADDRESS}`);
+	logger.info(`Scheduling gRPC server running at ${BIND_ADDRESS}`);
 });
 
 process.on('SIGINT', () => {
-	console.log('\nShutting down gRPC server...');
+	logger.info('Shutting down gRPC server...');
 	server.tryShutdown((err) => {
 		if (err) {
-			console.error('Error during shutdown:', err);
+			logger.error(err, 'Error during shutdown');
 			process.exit(1);
 		}
-		console.log('Server shut down gracefully.');
+		logger.info('Server shut down gracefully');
 		process.exit(0);
 	});
 });
