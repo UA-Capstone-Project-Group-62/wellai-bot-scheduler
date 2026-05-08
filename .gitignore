@@ -1,3 +1,12 @@
+# MacOS
+.DS_Store
+
+# Google Cloud Service Account Key
+config/service-account-key.json
+
+# Clinic configuration (contains sensitive info)
+config/clinics.json
+
 # Logs
 logs
 *.log

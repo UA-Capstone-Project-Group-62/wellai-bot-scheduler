@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: wellai
+      POSTGRES_PASSWORD: wellai123
+      POSTGRES_DB: wellai_scheduler
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wellai -d wellai_scheduler"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  scheduler:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - '50051:50051'
+    env_file:
+      - .env
+    volumes:
+      - ./config:/app/config:ro
+
+volumes:
+  postgres_data:
