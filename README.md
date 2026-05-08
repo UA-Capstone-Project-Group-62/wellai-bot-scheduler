@@ -1,6 +1,6 @@
 # WellAI Bot Scheduler
 
-A production-ready Scheduling & Notification gRPC service that manages clinic appointments via Google Calendar API, persists state in PostgreSQL using Drizzle ORM, sends WhatsApp notifications via RabbitMQ, and dispatches 24h and 2h reminders before each appointment.
+A production-ready Scheduling & Notification gRPC service that manages clinic appointments via Google Calendar API, persists state in PostgreSQL using Drizzle ORM, sends WhatsApp notifications via gRPC to a Bot Service, and dispatches 24h and 2h reminders before each appointment.
 
 ## Prerequisites
 
@@ -19,10 +19,10 @@ Edit `.env` with your settings:
 
 ```env
 DATABASE_URL=postgresql://wellai:wellai123@postgres:5432/wellai_scheduler
-RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json
+GOOGLE_APPLICATION_CREDENTIALS=./config/service-account-key.json
 GRPC_PORT=50051
 LOG_LEVEL=info
+BOT_SERVICE_ADDRESS=localhost:50052
 ```
 
 ### 2. Place Google Service Account key
@@ -59,7 +59,6 @@ docker compose up -d
 
 This starts:
 - **PostgreSQL 16** on port `5432`
-- **RabbitMQ 4** on ports `5672` (AMQP) and `15672` (management UI)
 - **Scheduler service** on port `50051`
 
 The scheduler container will automatically run `db:push` on startup if the database is empty.
@@ -149,7 +148,7 @@ For local development with hot-reload:
 
 ```bash
 pnpm install
-docker compose up -d postgres rabbitmq
+docker compose up -d postgres
 pnpm db:push
 pnpm dev
 ```
@@ -169,20 +168,23 @@ pnpm db:studio      # Open Drizzle Studio
 wellai-bot-scheduler/
 ├── src/
 │   ├── lib/
-│   │   ├── calendar.ts     # Google Calendar API wrapper
-│   │   ├── clinics.ts      # Clinic config loader & helpers
 │   │   ├── db.ts           # Drizzle ORM client
 │   │   ├── env.ts          # Environment variables
-│   │   ├── logger.ts       # Pino logger
-│   │   └── rabbitmq.ts     # RabbitMQ connection manager
+│   │   └── logger.ts       # Pino logger
 │   ├── db/
 │   │   └── schema.ts       # Drizzle schema (appointments table)
 │   ├── services/
+│   │   ├── bot/            # Bot Service gRPC client
+│   │   ├── calendar/       # Google Calendar API wrapper
+│   │   ├── clinics/        # Clinic config loader & helpers
+│   │   ├── jobs/           # Background jobs (reminders)
 │   │   └── scheduling/     # gRPC service implementations
 │   └── server.ts           # gRPC server entry point
-├── clinics.json             # Clinic configuration
-├── docker-compose.yml       # PostgreSQL + RabbitMQ + Scheduler
-├── drizzle.config.ts        # Drizzle ORM config
+├── config/
+│   ├── clinics.json        # Clinic configuration
+│   └── service-account-key.json  # Google Service Account key (gitignored)
+├── docker-compose.yml      # PostgreSQL + Scheduler
+├── drizzle.config.ts       # Drizzle ORM config
 └── .env.example            # Environment template
 ```
 
