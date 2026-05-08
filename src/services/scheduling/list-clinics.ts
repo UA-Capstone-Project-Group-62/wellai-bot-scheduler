@@ -13,11 +13,11 @@ export const listClinics: handleUnaryCall<Empty, ListClinicsResponse> = (
 		clinics: [
 			Clinic.create({
 				clinicId: 'clinic-1',
-				clinicName: 'Downtown Clinic',
+				clinicInfo: '{ name: "Downtown Clinic", address: "123 Main St" }',
 			}),
 			Clinic.create({
 				clinicId: 'clinic-2',
-				clinicName: 'Uptown Clinic',
+				clinicInfo: '{ name: "Uptown Clinic", address: "456 Elm St" }',
 			}),
 		],
 	});
