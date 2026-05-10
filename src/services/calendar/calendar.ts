@@ -25,7 +25,9 @@ export function initCalendarClient(): void {
 	const credentialsPath = env.GOOGLE_APPLICATION_CREDENTIALS;
 
 	if (!credentialsPath) {
-		logger.warn('GOOGLE_APPLICATION_CREDENTIALS not set, Calendar API in noop mode');
+		logger.warn(
+			'GOOGLE_APPLICATION_CREDENTIALS not set, Calendar API in noop mode',
+		);
 		isNoopMode = true;
 		return;
 	}
@@ -33,7 +35,10 @@ export function initCalendarClient(): void {
 	try {
 		const resolvedPath = path.resolve(process.cwd(), credentialsPath);
 		if (!fs.existsSync(resolvedPath)) {
-			logger.warn({ credentialsPath: resolvedPath }, 'Service account key file not found, Calendar API in noop mode');
+			logger.warn(
+				{ credentialsPath: resolvedPath },
+				'Service account key file not found, Calendar API in noop mode',
+			);
 			isNoopMode = true;
 			return;
 		}
@@ -56,7 +61,10 @@ export async function createEvent(
 	input: CalendarEventInput,
 ): Promise<string | null> {
 	if (isNoopMode || !calendarClient) {
-		logger.info({ calendarId, summary: input.summary }, 'Noop: would create calendar event');
+		logger.info(
+			{ calendarId, summary: input.summary },
+			'Noop: would create calendar event',
+		);
 		return `noop-event-${Date.now()}`;
 	}
 
@@ -107,7 +115,10 @@ export async function deleteEvent(
 		});
 		logger.info({ calendarId, eventId }, 'Deleted calendar event');
 	} catch (err) {
-		logger.error({ err, calendarId, eventId }, 'Failed to delete calendar event');
+		logger.error(
+			{ err, calendarId, eventId },
+			'Failed to delete calendar event',
+		);
 		throw err;
 	}
 }

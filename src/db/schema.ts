@@ -1,4 +1,11 @@
-import { pgTable, bigint, varchar, timestamp, boolean, pgEnum } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	bigint,
+	varchar,
+	timestamp,
+	boolean,
+	pgEnum,
+} from 'drizzle-orm/pg-core';
 
 export const appointmentStatusEnum = pgEnum('appointment_status', [
 	'confirmed',

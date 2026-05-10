@@ -103,7 +103,10 @@ export const schedule: handleUnaryCall<ScheduleRequest, Response> = async (
 		try {
 			await deleteEvent(clinic.google_calendar_id, googleEventId);
 		} catch (cleanupErr) {
-			logger.error({ cleanupErr, googleEventId }, 'Failed to cleanup calendar event');
+			logger.error(
+				{ cleanupErr, googleEventId },
+				'Failed to cleanup calendar event',
+			);
 		}
 		callback({
 			code: status.INTERNAL,
@@ -123,7 +126,10 @@ export const schedule: handleUnaryCall<ScheduleRequest, Response> = async (
 		);
 	}
 
-	logger.info({ userId, clinicId, googleEventId }, 'Appointment scheduled successfully');
+	logger.info(
+		{ userId, clinicId, googleEventId },
+		'Appointment scheduled successfully',
+	);
 
 	const response = Response.create({
 		success: true,

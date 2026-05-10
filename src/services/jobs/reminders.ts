@@ -27,10 +27,14 @@ async function checkReminders(): Promise<void> {
 	const now = new Date();
 
 	const window24hStart = new Date(now.getTime() + 23 * 60 * 60 * 1000);
-	const window24hEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000 + 10 * 60 * 1000);
+	const window24hEnd = new Date(
+		now.getTime() + 24 * 60 * 60 * 1000 + 10 * 60 * 1000,
+	);
 
 	const window2hStart = new Date(now.getTime() + 1 * 60 * 60 * 1000);
-	const window2hEnd = new Date(now.getTime() + 2 * 60 * 60 * 1000 + 10 * 60 * 1000);
+	const window2hEnd = new Date(
+		now.getTime() + 2 * 60 * 60 * 1000 + 10 * 60 * 1000,
+	);
 
 	const appointments24h = await db.query.appointments.findMany({
 		where: and(

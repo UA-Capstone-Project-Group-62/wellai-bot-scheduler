@@ -84,7 +84,8 @@ export function isWithinWorkingHours(
 	const hours = getWorkingHours(clinicId, dateTime);
 	if (!hours) return false;
 
-	const appointmentMinutes = dateTime.getUTCHours() * 60 + dateTime.getUTCMinutes();
+	const appointmentMinutes =
+		dateTime.getUTCHours() * 60 + dateTime.getUTCMinutes();
 	const startMinutes = timeToMinutes(hours.start);
 	const endMinutes = timeToMinutes(hours.end);
 

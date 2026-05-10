@@ -5,7 +5,11 @@ import {
 	TimeRange,
 } from '~proto/proto/scheduling/scheduling';
 import { logger } from '../../lib/logger';
-import { getClinicById, getAvailableSlots, isClinicOpen } from '../clinics/clinics';
+import {
+	getClinicById,
+	getAvailableSlots,
+	isClinicOpen,
+} from '../clinics/clinics';
 import { queryFreeBusy } from '../calendar/calendar';
 
 export const query: handleUnaryCall<QueryRequest, QueryResponse> = async (
@@ -65,7 +69,11 @@ export const query: handleUnaryCall<QueryRequest, QueryResponse> = async (
 		});
 
 	logger.info(
-		{ clinicId, totalSlots: slots.length, availableSlots: availableSlots.length },
+		{
+			clinicId,
+			totalSlots: slots.length,
+			availableSlots: availableSlots.length,
+		},
 		'Query completed',
 	);
 

@@ -44,7 +44,10 @@ export const cancel: handleUnaryCall<CancelRequest, Response> = async (
 			.set({ status: 'cancelled' })
 			.where(eq(appointments.id, appointment.id));
 	} catch (err) {
-		logger.error({ err, appointmentId: appointment.id }, 'Failed to update appointment status');
+		logger.error(
+			{ err, appointmentId: appointment.id },
+			'Failed to update appointment status',
+		);
 		callback({
 			code: status.INTERNAL,
 			message: 'Failed to cancel appointment',
@@ -67,7 +70,10 @@ export const cancel: handleUnaryCall<CancelRequest, Response> = async (
 		}
 	}
 
-	logger.info({ userId, appointmentId: appointment.id }, 'Appointment cancelled successfully');
+	logger.info(
+		{ userId, appointmentId: appointment.id },
+		'Appointment cancelled successfully',
+	);
 
 	const response = Response.create({
 		success: true,
