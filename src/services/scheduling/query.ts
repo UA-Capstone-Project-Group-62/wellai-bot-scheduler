@@ -5,18 +5,15 @@ import {
 	TimeRange,
 } from '~proto/proto/scheduling/scheduling';
 import { logger } from '../../lib/logger';
-import {
-	getClinicById,
-	getAvailableSlots,
-	isClinicOpen,
-} from '../clinics/clinics';
+import { getClinicById, getAvailableSlots, isClinicOpen } from '../clinics/clinics';
 import { queryFreeBusy } from '../calendar/calendar';
 
 export const query: handleUnaryCall<QueryRequest, QueryResponse> = async (
 	call,
 	callback,
 ) => {
-	const { clinicId } = call.request;
+	const { clinicId, days } = call.request;
+	const numDays = days > 0 ? days : 1;
 
 	const clinic = getClinicById(clinicId);
 	if (!clinic) {
@@ -26,54 +23,55 @@ export const query: handleUnaryCall<QueryRequest, QueryResponse> = async (
 		return;
 	}
 
+	const availableSlots: TimeRange[] = [];
 	const today = new Date();
-	if (!isClinicOpen(clinicId, today)) {
-		logger.info({ clinicId }, 'Clinic is not open today');
-		const response = QueryResponse.create({ availableSlots: [] });
-		callback(null, response);
-		return;
-	}
 
-	const slots = getAvailableSlots(clinicId, today, 60);
+	for (let d = 0; d < numDays; d++) {
+		const currentDate = new Date(today);
+		currentDate.setUTCDate(today.getUTCDate() + d);
 
-	const startOfDay = new Date(today);
-	startOfDay.setUTCHours(0, 0, 0, 0);
-	const endOfDay = new Date(today);
-	endOfDay.setUTCHours(23, 59, 59, 999);
+		if (!isClinicOpen(clinicId, currentDate)) {
+			continue;
+		}
 
-	const busyRanges = await queryFreeBusy(
-		clinic.google_calendar_id,
-		startOfDay,
-		endOfDay,
-	);
+		const slots = getAvailableSlots(clinicId, currentDate, 60);
 
-	const availableSlots = slots
-		.filter((slot) => {
-			const slotStart = parseSlotTime(slot.start, today);
-			const slotEnd = parseSlotTime(slot.end, today);
+		const startOfDay = new Date(currentDate);
+		startOfDay.setUTCHours(0, 0, 0, 0);
+		const endOfDay = new Date(currentDate);
+		endOfDay.setUTCHours(23, 59, 59, 999);
 
+		const busyRanges = await queryFreeBusy(
+			clinic.google_calendar_id,
+			startOfDay,
+			endOfDay,
+		);
+
+		for (const slot of slots) {
+			const slotStart = parseSlotTime(slot.start, currentDate);
+			const slotEnd = parseSlotTime(slot.end, currentDate);
+
+			let isAvailable = true;
 			for (const busy of busyRanges) {
 				if (slotStart < busy.end && slotEnd > busy.start) {
-					return false;
+					isAvailable = false;
+					break;
 				}
 			}
-			return true;
-		})
-		.map((slot) => {
-			const slotStart = parseSlotTime(slot.start, today);
-			const slotEnd = parseSlotTime(slot.end, today);
-			return TimeRange.create({
-				startTime: slotStart,
-				endTime: slotEnd,
-			});
-		});
+
+			if (isAvailable) {
+				availableSlots.push(
+					TimeRange.create({
+						startTime: slotStart,
+						endTime: slotEnd,
+					}),
+				);
+			}
+		}
+	}
 
 	logger.info(
-		{
-			clinicId,
-			totalSlots: slots.length,
-			availableSlots: availableSlots.length,
-		},
+		{ clinicId, numDays, availableSlots: availableSlots.length },
 		'Query completed',
 	);
 
