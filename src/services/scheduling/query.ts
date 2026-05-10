@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { type handleUnaryCall } from '@grpc/grpc-js';
 import {
 	QueryRequest,
@@ -5,8 +7,14 @@ import {
 	TimeRange,
 } from '~proto/proto/scheduling/scheduling';
 import { logger } from '../../lib/logger';
-import { getClinicById, getAvailableSlots, isClinicOpen } from '../clinics/clinics';
+import {
+	getClinicById,
+	getAvailableSlots,
+	isClinicOpen,
+} from '../clinics/clinics';
 import { queryFreeBusy } from '../calendar/calendar';
+
+dayjs.extend(utc);
 
 export const query: handleUnaryCall<QueryRequest, QueryResponse> = async (
 	call,
@@ -24,22 +32,19 @@ export const query: handleUnaryCall<QueryRequest, QueryResponse> = async (
 	}
 
 	const availableSlots: TimeRange[] = [];
-	const today = new Date();
+	const today = dayjs();
 
 	for (let d = 0; d < numDays; d++) {
-		const currentDate = new Date(today);
-		currentDate.setUTCDate(today.getUTCDate() + d);
+		const currentDate = today.add(d, 'day');
 
-		if (!isClinicOpen(clinicId, currentDate)) {
+		if (!isClinicOpen(clinicId, currentDate.toDate())) {
 			continue;
 		}
 
-		const slots = getAvailableSlots(clinicId, currentDate, 60);
+		const slots = getAvailableSlots(clinicId, currentDate.toDate(), 60);
 
-		const startOfDay = new Date(currentDate);
-		startOfDay.setUTCHours(0, 0, 0, 0);
-		const endOfDay = new Date(currentDate);
-		endOfDay.setUTCHours(23, 59, 59, 999);
+		const startOfDay = currentDate.startOf('day').toDate();
+		const endOfDay = currentDate.endOf('day').toDate();
 
 		const busyRanges = await queryFreeBusy(
 			clinic.google_calendar_id,
@@ -79,11 +84,9 @@ export const query: handleUnaryCall<QueryRequest, QueryResponse> = async (
 	callback(null, response);
 };
 
-function parseSlotTime(timeStr: string, date: Date): Date {
-	const parts = timeStr.split(':').map((p) => Number(p) ?? 0);
+function parseSlotTime(timeStr: string, date: dayjs.Dayjs): Date {
+	const parts = timeStr.split(':').map(Number);
 	const hours = parts[0] ?? 0;
 	const minutes = parts[1] ?? 0;
-	const result = new Date(date);
-	result.setUTCHours(hours, minutes, 0, 0);
-	return result;
+	return date.hour(hours).minute(minutes).second(0).millisecond(0).toDate();
 }

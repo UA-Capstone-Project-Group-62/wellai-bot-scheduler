@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import cron, { ScheduledTask } from 'node-cron';
 import { db } from '../../lib/db';
 import { appointments } from '../../db/schema';
@@ -5,6 +7,8 @@ import { sendMessage } from '../bot/bot';
 import { getClinicById } from '../clinics/clinics';
 import { logger } from '../../lib/logger';
 import { eq, and, gte, lte } from 'drizzle-orm';
+
+dayjs.extend(utc);
 
 let cronJob: ScheduledTask | null = null;
 
@@ -24,24 +28,20 @@ export function stopReminderJob(): void {
 }
 
 async function checkReminders(): Promise<void> {
-	const now = new Date();
+	const now = dayjs();
 
-	const window24hStart = new Date(now.getTime() + 23 * 60 * 60 * 1000);
-	const window24hEnd = new Date(
-		now.getTime() + 24 * 60 * 60 * 1000 + 10 * 60 * 1000,
-	);
+	const window24hStart = now.add(23, 'hour');
+	const window24hEnd = now.add(24, 'hour').add(10, 'minute');
 
-	const window2hStart = new Date(now.getTime() + 1 * 60 * 60 * 1000);
-	const window2hEnd = new Date(
-		now.getTime() + 2 * 60 * 60 * 1000 + 10 * 60 * 1000,
-	);
+	const window2hStart = now.add(1, 'hour');
+	const window2hEnd = now.add(2, 'hour').add(10, 'minute');
 
 	const appointments24h = await db.query.appointments.findMany({
 		where: and(
 			eq(appointments.status, 'confirmed'),
 			eq(appointments.notified24h, false),
-			gte(appointments.startTimeUtc, window24hStart),
-			lte(appointments.startTimeUtc, window24hEnd),
+			gte(appointments.startTimeUtc, window24hStart.toDate()),
+			lte(appointments.startTimeUtc, window24hEnd.toDate()),
 		),
 	});
 
@@ -57,8 +57,8 @@ async function checkReminders(): Promise<void> {
 		where: and(
 			eq(appointments.status, 'confirmed'),
 			eq(appointments.notified2h, false),
-			gte(appointments.startTimeUtc, window2hStart),
-			lte(appointments.startTimeUtc, window2hEnd),
+			gte(appointments.startTimeUtc, window2hStart.toDate()),
+			lte(appointments.startTimeUtc, window2hEnd.toDate()),
 		),
 	});
 

@@ -1,6 +1,10 @@
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { logger } from '../../lib/logger';
 import path from 'path';
 import fs from 'fs';
+
+dayjs.extend(utc);
 
 const configPath = path.resolve(process.cwd(), 'config/clinics.json');
 
@@ -22,27 +26,11 @@ interface ClinicConfig {
 
 let clinics: ClinicConfig[] = [];
 
-function parseTime(timeStr: string): { hours: number; minutes: number } {
-	const parts = timeStr.split(':').map((p) => Number(p) ?? 0);
-	return { hours: parts[0] ?? 0, minutes: parts[1] ?? 0 };
-}
-
 function timeToMinutes(timeStr: string): number {
-	const { hours, minutes } = parseTime(timeStr);
+	const parts = timeStr.split(':').map(Number);
+	const hours = parts[0] ?? 0;
+	const minutes = parts[1] ?? 0;
 	return hours * 60 + minutes;
-}
-
-function getDayName(date: Date): string {
-	const days = [
-		'Sunday',
-		'Monday',
-		'Tuesday',
-		'Wednesday',
-		'Thursday',
-		'Friday',
-		'Saturday',
-	];
-	return days[date.getUTCDay()] ?? 'Monday';
 }
 
 export function loadClinics(): ClinicConfig[] {
@@ -68,7 +56,7 @@ export function getWorkingHours(
 	const clinic = getClinicById(clinicId);
 	if (!clinic) return null;
 
-	const dayName = getDayName(date);
+	const dayName = dayjs(date).format('dddd');
 	return clinic.working_hours[dayName] ?? null;
 }
 
@@ -85,7 +73,7 @@ export function isWithinWorkingHours(
 	if (!hours) return false;
 
 	const appointmentMinutes =
-		dateTime.getUTCHours() * 60 + dateTime.getUTCMinutes();
+		dayjs(dateTime).utc().hour() * 60 + dayjs(dateTime).utc().minute();
 	const startMinutes = timeToMinutes(hours.start);
 	const endMinutes = timeToMinutes(hours.end);
 
