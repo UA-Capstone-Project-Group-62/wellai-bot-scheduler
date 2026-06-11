@@ -73,7 +73,7 @@ export function isWithinWorkingHours(
 	if (!hours) return false;
 
 	const appointmentMinutes =
-		dayjs(dateTime).utc().hour() * 60 + dayjs(dateTime).utc().minute();
+		dayjs(dateTime).hour() * 60 + dayjs(dateTime).minute();
 	const startMinutes = timeToMinutes(hours.start);
 	const endMinutes = timeToMinutes(hours.end);
 

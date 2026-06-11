@@ -115,10 +115,6 @@ export const schedule: handleUnaryCall<ScheduleRequest, Response> = async (
 		return;
 	}
 
-	const confirmationMessage = `Your appointment at ${clinic.name} is confirmed for ${startTime.toISOString()}.`;
-
-	await sendMessage(userId, confirmationMessage);
-
 	for (const consultantId of clinic.consultant_whatsapp_ids) {
 		await sendMessage(
 			consultantId,

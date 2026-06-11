@@ -57,10 +57,6 @@ export const cancel: handleUnaryCall<CancelRequest, Response> = async (
 
 	const clinic = getClinicById(appointment.clinicId);
 
-	const cancellationMessage = `Your appointment has been cancelled.`;
-
-	await sendMessage(userId, cancellationMessage);
-
 	if (clinic) {
 		for (const consultantId of clinic.consultant_whatsapp_ids) {
 			await sendMessage(
